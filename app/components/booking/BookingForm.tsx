@@ -9,10 +9,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { 
   Calendar, 
-  Clock, 
   User, 
-  Mail, 
-  Phone, 
   Car,
   Wrench,
   CheckCircle,
@@ -28,9 +25,7 @@ const bookingSchema = z.object({
   vehicleMake: z.string().min(2, 'Please enter vehicle make'),
   vehicleModel: z.string().min(2, 'Please enter vehicle model'),
   vehicleYear: z.number().min(1900).max(new Date().getFullYear() + 1),
-  preferredDate: z.date({
-    required_error: 'Please select a date',
-  }),
+  preferredDate: z.date().nullable(),
   preferredTime: z.string().min(1, 'Please select a time'),
   notes: z.string().optional(),
 });
@@ -45,7 +40,6 @@ const TIME_SLOTS = [
 export default function BookingForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [selectedService, setSelectedService] = useState<string>('');
 
   const {
     register,
@@ -58,6 +52,7 @@ export default function BookingForm() {
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       vehicleYear: new Date().getFullYear(),
+      preferredDate: null,
     },
   });
 
@@ -69,20 +64,17 @@ export default function BookingForm() {
     setSubmitStatus('idle');
 
     try {
-      // TODO: Send to Supabase (we'll add this later)
       console.log('Booking data:', {
         ...data,
         serviceName: service?.name,
         servicePrice: service?.price,
       });
       
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       setSubmitStatus('success');
       reset();
       
-      // Reset success message after 5 seconds
       setTimeout(() => setSubmitStatus('idle'), 5000);
     } catch (error) {
       console.error('Error submitting booking:', error);
@@ -96,7 +88,6 @@ export default function BookingForm() {
     <div className="max-w-4xl mx-auto">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         
-        {/* Service Selection */}
         <div className="card">
           <h3 className="text-xl font-bold text-brand-black mb-4 flex items-center gap-2">
             <Wrench className="w-5 h-5 text-brand-orange" />
@@ -145,7 +136,6 @@ export default function BookingForm() {
           )}
         </div>
 
-        {/* Customer Information */}
         <div className="card">
           <h3 className="text-xl font-bold text-brand-black mb-4 flex items-center gap-2">
             <User className="w-5 h-5 text-brand-orange" />
@@ -203,7 +193,6 @@ export default function BookingForm() {
           </div>
         </div>
 
-        {/* Vehicle Information */}
         <div className="card">
           <h3 className="text-xl font-bold text-brand-black mb-4 flex items-center gap-2">
             <Car className="w-5 h-5 text-brand-orange" />
@@ -261,7 +250,6 @@ export default function BookingForm() {
           </div>
         </div>
 
-        {/* Date & Time Selection */}
         <div className="card">
           <h3 className="text-xl font-bold text-brand-black mb-4 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-brand-orange" />
@@ -315,7 +303,6 @@ export default function BookingForm() {
           </div>
         </div>
 
-        {/* Additional Notes */}
         <div className="card">
           <label htmlFor="notes" className="block text-sm font-semibold text-brand-black mb-2">
             Additional Notes (Optional)
@@ -329,7 +316,6 @@ export default function BookingForm() {
           />
         </div>
 
-        {/* Price Summary */}
         {service && (
           <div className="card bg-brand-orange/5 border-2 border-brand-orange">
             <div className="flex items-center justify-between">
@@ -345,7 +331,6 @@ export default function BookingForm() {
           </div>
         )}
 
-        {/* Submit Button */}
         <motion.button
           type="submit"
           disabled={isSubmitting}
@@ -366,7 +351,6 @@ export default function BookingForm() {
           )}
         </motion.button>
 
-        {/* Success Message */}
         {submitStatus === 'success' && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -381,7 +365,6 @@ export default function BookingForm() {
           </motion.div>
         )}
 
-        {/* Error Message */}
         {submitStatus === 'error' && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
