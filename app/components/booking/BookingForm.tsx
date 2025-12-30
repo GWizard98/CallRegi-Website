@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion } from 'framer-motion';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { 
@@ -25,7 +24,6 @@ const bookingSchema = z.object({
   vehicleMake: z.string().min(2, 'Please enter vehicle make'),
   vehicleModel: z.string().min(2, 'Please enter vehicle model'),
   vehicleYear: z.number().min(1900).max(new Date().getFullYear() + 1),
-  preferredDate: z.date().nullable(),
   preferredTime: z.string().min(1, 'Please select a time'),
   notes: z.string().optional(),
 });
@@ -40,11 +38,11 @@ const TIME_SLOTS = [
 export default function BookingForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
     reset,
     watch,
@@ -52,7 +50,6 @@ export default function BookingForm() {
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       vehicleYear: new Date().getFullYear(),
-      preferredDate: null,
     },
   });
 
@@ -66,6 +63,7 @@ export default function BookingForm() {
     try {
       console.log('Booking data:', {
         ...data,
+        preferredDate: selectedDate,
         serviceName: service?.name,
         servicePrice: service?.price,
       });
@@ -74,6 +72,7 @@ export default function BookingForm() {
       
       setSubmitStatus('success');
       reset();
+      setSelectedDate(null);
       
       setTimeout(() => setSubmitStatus('idle'), 5000);
     } catch (error) {
@@ -89,8 +88,8 @@ export default function BookingForm() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         
         <div className="card">
-          <h3 className="text-xl font-bold text-brand-black mb-4 flex items-center gap-2">
-            <Wrench className="w-5 h-5 text-brand-orange" />
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Wrench className="w-5 h-5" style={{ color: '#FF8C42' }} />
             Select Service
           </h3>
           
@@ -100,8 +99,8 @@ export default function BookingForm() {
                 key={svc.id}
                 className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
                   watchedServiceId === svc.id
-                    ? 'border-brand-orange bg-brand-orange/5'
-                    : 'border-gray-200 hover:border-brand-orange/50'
+                    ? 'border-orange-500 bg-orange-50'
+                    : 'border-gray-200 hover:border-orange-300'
                 }`}
               >
                 <input
@@ -112,21 +111,21 @@ export default function BookingForm() {
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-brand-black">{svc.name}</span>
+                    <span className="font-semibold">{svc.name}</span>
                     {svc.popular && (
-                      <span className="text-xs bg-brand-orange text-white px-2 py-1 rounded-full">
+                      <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full">
                         Popular
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-brand-gray-medium">
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
                     <span>${svc.price.toFixed(2)}</span>
                     <span>•</span>
                     <span>{svc.estimatedDuration} min</span>
                   </div>
                 </div>
                 {watchedServiceId === svc.id && (
-                  <CheckCircle className="w-5 h-5 text-brand-orange ml-2" />
+                  <CheckCircle className="w-5 h-5 ml-2" style={{ color: '#FF8C42' }} />
                 )}
               </label>
             ))}
@@ -137,14 +136,14 @@ export default function BookingForm() {
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-bold text-brand-black mb-4 flex items-center gap-2">
-            <User className="w-5 h-5 text-brand-orange" />
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <User className="w-5 h-5" style={{ color: '#FF8C42' }} />
             Your Information
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="customerName" className="block text-sm font-semibold text-brand-black mb-2">
+              <label htmlFor="customerName" className="block text-sm font-semibold mb-2">
                 Full Name *
               </label>
               <input
@@ -160,7 +159,7 @@ export default function BookingForm() {
             </div>
 
             <div>
-              <label htmlFor="customerEmail" className="block text-sm font-semibold text-brand-black mb-2">
+              <label htmlFor="customerEmail" className="block text-sm font-semibold mb-2">
                 Email *
               </label>
               <input
@@ -176,7 +175,7 @@ export default function BookingForm() {
             </div>
 
             <div>
-              <label htmlFor="customerPhone" className="block text-sm font-semibold text-brand-black mb-2">
+              <label htmlFor="customerPhone" className="block text-sm font-semibold mb-2">
                 Phone *
               </label>
               <input
@@ -194,14 +193,14 @@ export default function BookingForm() {
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-bold text-brand-black mb-4 flex items-center gap-2">
-            <Car className="w-5 h-5 text-brand-orange" />
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Car className="w-5 h-5" style={{ color: '#FF8C42' }} />
             Vehicle Information
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label htmlFor="vehicleMake" className="block text-sm font-semibold text-brand-black mb-2">
+              <label htmlFor="vehicleMake" className="block text-sm font-semibold mb-2">
                 Make *
               </label>
               <input
@@ -217,7 +216,7 @@ export default function BookingForm() {
             </div>
 
             <div>
-              <label htmlFor="vehicleModel" className="block text-sm font-semibold text-brand-black mb-2">
+              <label htmlFor="vehicleModel" className="block text-sm font-semibold mb-2">
                 Model *
               </label>
               <input
@@ -233,7 +232,7 @@ export default function BookingForm() {
             </div>
 
             <div>
-              <label htmlFor="vehicleYear" className="block text-sm font-semibold text-brand-black mb-2">
+              <label htmlFor="vehicleYear" className="block text-sm font-semibold mb-2">
                 Year *
               </label>
               <input
@@ -251,37 +250,28 @@ export default function BookingForm() {
         </div>
 
         <div className="card">
-          <h3 className="text-xl font-bold text-brand-black mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-brand-orange" />
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Calendar className="w-5 h-5" style={{ color: '#FF8C42' }} />
             Preferred Date & Time
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-brand-black mb-2">
+              <label className="block text-sm font-semibold mb-2">
                 Date *
               </label>
-              <Controller
-                control={control}
-                name="preferredDate"
-                render={({ field }) => (
-                  <DatePicker
-                    selected={field.value}
-                    onChange={(date) => field.onChange(date)}
-                    minDate={new Date()}
-                    dateFormat="MMMM d, yyyy"
-                    className="input-field w-full"
-                    placeholderText="Select a date"
-                  />
-                )}
+              <DatePicker
+                selected={selectedDate}
+                onChange={(date) => setSelectedDate(date)}
+                minDate={new Date()}
+                dateFormat="MMMM d, yyyy"
+                className="input-field w-full"
+                placeholderText="Select a date"
               />
-              {errors.preferredDate && (
-                <p className="mt-1 text-sm text-red-600">{errors.preferredDate.message}</p>
-              )}
             </div>
 
             <div>
-              <label htmlFor="preferredTime" className="block text-sm font-semibold text-brand-black mb-2">
+              <label htmlFor="preferredTime" className="block text-sm font-semibold mb-2">
                 Time *
               </label>
               <select
@@ -304,7 +294,7 @@ export default function BookingForm() {
         </div>
 
         <div className="card">
-          <label htmlFor="notes" className="block text-sm font-semibold text-brand-black mb-2">
+          <label htmlFor="notes" className="block text-sm font-semibold mb-2">
             Additional Notes (Optional)
           </label>
           <textarea
@@ -317,25 +307,23 @@ export default function BookingForm() {
         </div>
 
         {service && (
-          <div className="card bg-brand-orange/5 border-2 border-brand-orange">
+          <div className="card border-2" style={{ borderColor: '#FF8C42', backgroundColor: '#FFF5F0' }}>
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-bold text-brand-black">Selected Service</h4>
-                <p className="text-brand-gray-medium">{service.name}</p>
+                <h4 className="font-bold">Selected Service</h4>
+                <p className="text-gray-600">{service.name}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-brand-gray-medium">Estimated Price</p>
-                <p className="text-2xl font-bold text-brand-orange">${service.price.toFixed(2)}</p>
+                <p className="text-sm text-gray-600">Estimated Price</p>
+                <p className="text-2xl font-bold" style={{ color: '#FF8C42' }}>${service.price.toFixed(2)}</p>
               </div>
             </div>
           </div>
         )}
 
-        <motion.button
+        <button
           type="submit"
           disabled={isSubmitting}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
           className="w-full btn-primary py-4 text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
@@ -349,31 +337,23 @@ export default function BookingForm() {
               Book Appointment
             </>
           )}
-        </motion.button>
+        </button>
 
         {submitStatus === 'success' && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800"
-          >
+          <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
             <CheckCircle className="w-5 h-5" />
             <div>
               <p className="font-semibold">Booking Confirmed!</p>
-              <p className="text-sm">We'll send you a confirmation email shortly. See you soon!</p>
+              <p className="text-sm">We will send you a confirmation email shortly. See you soon!</p>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {submitStatus === 'error' && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800"
-          >
+          <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
             <AlertCircle className="w-5 h-5" />
             <p>Something went wrong. Please try again or call us at 786-681-2854</p>
-          </motion.div>
+          </div>
         )}
       </form>
     </div>
