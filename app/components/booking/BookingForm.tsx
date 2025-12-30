@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import DatePicker from 'react-datepicker';
@@ -262,7 +262,7 @@ export default function BookingForm() {
               </label>
               <DatePicker
                 selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
+                onChange={(date: Date | null) => setSelectedDate(date)}
                 minDate={new Date()}
                 dateFormat="MMMM d, yyyy"
                 className="input-field w-full"
